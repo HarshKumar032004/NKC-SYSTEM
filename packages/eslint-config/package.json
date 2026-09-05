@@ -1,0 +1,22 @@
+{
+  "name": "@nkc/eslint-config",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base": "./base.js",
+    "./nest": "./nest.js",
+    "./next": "./next.js"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.9.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.30.0",
+    "globals": "^15.9.0",
+    "typescript-eslint": "^8.4.0"
+  }
+}

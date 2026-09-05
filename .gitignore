@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build
+dist
+build
+.next
+out
+.turbo
+*.tsbuildinfo
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs & coverage
+logs
+*.log
+coverage
+.nyc_output
+
+# IDE / OS
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-data
+
+# Test
+*.lcov
+
+# Explicitly ignore nested env files
+**/.env
+**/.env.local
+**/.env.*.local
+

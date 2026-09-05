@@ -1,0 +1,76 @@
+name: nkc-ims
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nkc-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-nkc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nkc_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-nkc_ims}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-nkc} -d ${POSTGRES_DB:-nkc_ims}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - nkc-net
+
+  pgbouncer:
+    image: bitnami/pgbouncer:1.23.1
+    container_name: nkc-pgbouncer
+    restart: unless-stopped
+    ports:
+      - '6432:6432'
+    environment:
+      POSTGRESQL_HOST: postgres
+      POSTGRESQL_PORT_NUMBER: 5432
+      POSTGRESQL_USERNAME: ${POSTGRES_USER:-nkc}
+      POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-nkc_secret}
+      POSTGRESQL_DATABASE: ${POSTGRES_DB:-nkc_ims}
+      PGBOUNCER_PORT: 6432
+      PGBOUNCER_POOL_MODE: transaction
+      PGBOUNCER_MAX_CLIENT_CONN: 200
+      PGBOUNCER_DEFAULT_POOL_SIZE: 20
+      PGBOUNCER_AUTH_TYPE: scram-sha-256
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'bash -c "echo > /dev/tcp/127.0.0.1/6432"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - nkc-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: nkc-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - nkc-net
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  nkc-net:
+    driver: bridge

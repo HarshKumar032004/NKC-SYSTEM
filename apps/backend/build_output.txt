@@ -1,0 +1,149 @@
+
+> @nkc/backend@0.0.1 build
+> nest build
+
+[96msrc/modules/attendance/attendance.controller.ts[0m:[93m16[0m:[93m82[0m - [91merror[0m[90m TS2554: [0mExpected 2 arguments, but got 3.
+
+[7m16[0m     return this.attendanceService.markBulkAttendance(req.user.branchId, payload, req.user);
+[7m  [0m [91m                                                                                 ~~~~~~~~[0m
+[96msrc/modules/attendance/attendance.controller.ts[0m:[93m26[0m:[93m35[0m - [91merror[0m[90m TS2339: [0mProperty 'getBatchRollup' does not exist on type 'AttendanceService'.
+
+[7m26[0m     return this.attendanceService.getBatchRollup(req.user.branchId, batchId, date);
+[7m  [0m [91m                                  ~~~~~~~~~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m3[0m - [91merror[0m[90m TS1434: [0mUnexpected keyword or identifier.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m  ~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m3[0m - [91merror[0m[90m TS2304: [0mCannot find name 'async'.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m  ~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m9[0m - [91merror[0m[90m TS2663: [0mCannot find name 'markBulkAttendance'. Did you mean the instance member 'this.markBulkAttendance'?
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m        ~~~~~~~~~~~~~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m36[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                   ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m38[0m - [91merror[0m[90m TS2693: [0m'string' only refers to a type, but is being used as a value here.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                     ~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m53[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                                    ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m55[0m - [91merror[0m[90m TS2693: [0m'BulkAttendanceDto' only refers to a type, but is being used as a value here.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                                      ~~~~~~~~~~~~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m74[0m - [91merror[0m[90m TS2304: [0mCannot find name 'user'.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                                                         ~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m78[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                                                             ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m80[0m - [91merror[0m[90m TS2693: [0m'User' only refers to a type, but is being used as a value here.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                                                               ~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m31[0m:[93m86[0m - [91merror[0m[90m TS1005: [0m';' expected.
+
+[7m31[0m   async markBulkAttendance(branchId: string, payload: BulkAttendanceDto, user: User) {
+[7m  [0m [91m                                                                                     ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m36[0m:[93m9[0m - [91merror[0m[90m TS2304: [0mCannot find name 'user'.
+
+[7m36[0m     if (user.role !== 'SUPER_ADMIN' && user.role !== 'BRANCH_ADMIN') {
+[7m  [0m [91m        ~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m36[0m:[93m40[0m - [91merror[0m[90m TS2304: [0mCannot find name 'user'.
+
+[7m36[0m     if (user.role !== 'SUPER_ADMIN' && user.role !== 'BRANCH_ADMIN') {
+[7m  [0m [91m                                       ~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m49[0m:[93m22[0m - [91merror[0m[90m TS2304: [0mCannot find name 'user'.
+
+[7m49[0m           teacherId: user.id,
+[7m  [0m [91m                     ~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m3[0m - [91merror[0m[90m TS1434: [0mUnexpected keyword or identifier.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m  ~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m3[0m - [91merror[0m[90m TS2304: [0mCannot find name 'async'.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m  ~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m9[0m - [91merror[0m[90m TS2304: [0mCannot find name 'getBatchRollup'.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m        ~~~~~~~~~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m32[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                               ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m34[0m - [91merror[0m[90m TS2693: [0m'string' only refers to a type, but is being used as a value here.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                 ~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m42[0m - [91merror[0m[90m TS2304: [0mCannot find name 'batchId'.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                         ~~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m49[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                                ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m51[0m - [91merror[0m[90m TS2693: [0m'string' only refers to a type, but is being used as a value here.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                                  ~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m59[0m - [91merror[0m[90m TS2552: [0mCannot find name 'date'. Did you mean 'Date'?
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                                          ~~~~[0m
+
+  [96m../../node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/lib.es5.d.ts[0m:[93m961[0m:[93m13[0m
+    [7m961[0m declare var Date: DateConstructor;
+    [7m   [0m [96m            ~~~~[0m
+    'Date' is declared here.
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m63[0m - [91merror[0m[90m TS1005: [0m',' expected.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                                              ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m65[0m - [91merror[0m[90m TS2693: [0m'string' only refers to a type, but is being used as a value here.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                                                ~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m119[0m:[93m73[0m - [91merror[0m[90m TS1005: [0m';' expected.
+
+[7m119[0m   async getBatchRollup(branchId: string, batchId: string, date: string) {
+[7m   [0m [91m                                                                        ~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m120[0m:[93m55[0m - [91merror[0m[90m TS2304: [0mCannot find name 'batchId'.
+
+[7m120[0m     const cacheKey = `attendance_rollup:${branchId}:${batchId}:${date}`;
+[7m   [0m [91m                                                      ~~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m120[0m:[93m66[0m - [91merror[0m[90m TS2304: [0mCannot find name 'date'.
+
+[7m120[0m     const cacheKey = `attendance_rollup:${branchId}:${batchId}:${date}`;
+[7m   [0m [91m                                                                 ~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m124[0m:[93m25[0m - [91merror[0m[90m TS2345: [0mArgument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+
+[7m124[0m       return JSON.parse(cached);
+[7m   [0m [91m                        ~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m127[0m:[93m30[0m - [91merror[0m[90m TS2304: [0mCannot find name 'date'.
+
+[7m127[0m     const dateObj = new Date(date);
+[7m   [0m [91m                             ~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m128[0m:[93m57[0m - [91merror[0m[90m TS2304: [0mCannot find name 'batchId'.
+
+[7m128[0m     const rollup = await this.calculateRollup(branchId, batchId, dateObj);
+[7m   [0m [91m                                                        ~~~~~~~[0m
+[96msrc/modules/attendance/attendance.service.ts[0m:[93m134[0m:[93m3[0m - [91merror[0m[90m TS1128: [0mDeclaration or statement expected.
+
+[7m134[0m   private async calculateRollup(branchId: string, batchId: string, dateObj: Date) {
+[7m   [0m [91m  ~~~~~~~[0m
+
+Found 34 error(s).
+
