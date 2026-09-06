@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { Redis } from 'ioredis';
 
 import { appConfig, databaseConfig, redisConfig } from './config/env.config';
 import { envValidationSchema, EnvVars } from './config/env.schema';
@@ -44,12 +45,24 @@ import { UsersModule } from './modules/users/users.module';
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService<EnvVars>) => ({
-        throttlers: [{ ttl: 60000, limit: 100 }], // 100 requests per minute by default
-        storage: new ThrottlerStorageRedisService(
-          `redis://${config.get<string>('REDIS_HOST')}:${config.get<number>('REDIS_PORT')}`
-        ),
-      }),
+      useFactory: (config: ConfigService<EnvVars>) => {
+        const redisUrl = config.get<string>('REDIS_URL');
+        let redisClient: Redis;
+        if (redisUrl) {
+          redisClient = new Redis(redisUrl, {
+            tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+          });
+        } else {
+          redisClient = new Redis({
+            host: config.get<string>('REDIS_HOST'),
+            port: config.get<number>('REDIS_PORT'),
+          });
+        }
+        return {
+          throttlers: [{ ttl: 60000, limit: 100 }], // 100 requests per minute by default
+          storage: new ThrottlerStorageRedisService(redisClient),
+        };
+      },
     }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],

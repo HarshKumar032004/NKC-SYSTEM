@@ -67,6 +67,16 @@ services:
     networks:
       - nkc-net
 
+  mailhog:
+    image: mailhog/mailhog
+    container_name: nkc-mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025' # SMTP port (Backend uses this to send emails)
+      - '8025:8025' # Web UI port (You open this in your browser)
+    networks:
+      - nkc-net
+
 volumes:
   pgdata:
   redisdata:
