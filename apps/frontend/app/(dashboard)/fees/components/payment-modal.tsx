@@ -162,8 +162,8 @@ export function PaymentModal({ isOpen, onClose, studentId, installment }: Paymen
 
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                <Button type="submit" disabled={paymentMutation.isPending}>
-                  {paymentMutation.isPending ? 'Processing...' : 'Confirm Payment'}
+                <Button type="submit" isLoading={paymentMutation.isPending}>
+                  Confirm Payment
                 </Button>
               </div>
             </form>

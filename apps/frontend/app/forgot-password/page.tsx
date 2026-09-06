@@ -107,8 +107,8 @@ export default function ForgotPasswordPage() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Sending...' : 'Send Reset Link'}
+            <Button type="submit" className="w-full" isLoading={loading}>
+              Send Reset Link
             </Button>
           </CardFooter>
         </form>

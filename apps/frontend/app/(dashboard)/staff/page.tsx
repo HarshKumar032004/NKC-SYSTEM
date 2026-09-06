@@ -128,8 +128,8 @@ export default function StaffPage() {
                   ))}
                 </select>
               </div>
-              <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Creating...' : 'Create Account'}
+              <Button type="submit" className="w-full" isLoading={createMutation.isPending}>
+                Create Account
               </Button>
             </form>
           </DialogContent>

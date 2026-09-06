@@ -19,8 +19,10 @@ export const envValidationSchema = Joi.object({
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_REFRESH_SECRET: Joi.string().required(),
   COOKIE_SECRET: Joi.string().optional(),
-  // Cloudflare R2
-  R2_ACCOUNT_ID: Joi.string().required(),
+  // Storage (Cloudflare R2 or Supabase/AWS S3)
+  S3_ENDPOINT: Joi.string().optional(),
+  S3_REGION: Joi.string().default('auto'),
+  R2_ACCOUNT_ID: Joi.string().optional(),
   R2_ACCESS_KEY_ID: Joi.string().required(),
   R2_SECRET_ACCESS_KEY: Joi.string().required(),
   R2_BUCKET_NAME: Joi.string().default('nkc-ims-vault'),
@@ -48,7 +50,9 @@ export interface EnvVars {
   JWT_ACCESS_SECRET: string;
   JWT_REFRESH_SECRET: string;
   COOKIE_SECRET?: string;
-  R2_ACCOUNT_ID: string;
+  S3_ENDPOINT?: string;
+  S3_REGION: string;
+  R2_ACCOUNT_ID?: string;
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
   R2_BUCKET_NAME: string;

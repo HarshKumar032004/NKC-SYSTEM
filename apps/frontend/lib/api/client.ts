@@ -3,7 +3,7 @@ import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/auth-store';
 
 export const apiClient = axios.create({
-  baseURL: '/api/v1',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || '/api/v1',
   withCredentials: true, // Necessary to send and receive HttpOnly cookies
 });
 

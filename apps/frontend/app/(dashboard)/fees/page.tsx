@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/store/auth-store';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, Plus } from 'lucide-react';
+import { Eye, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DataTableFilter } from '@/components/ui/data-table-filter';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 export default function FeesGlobalLedgerPage() {
   const activeBranchId = useAuthStore(s => s.activeBranchId);
@@ -24,13 +25,14 @@ export default function FeesGlobalLedgerPage() {
   const [isNewStructureOpen, setIsNewStructureOpen] = useState(false);
   const [newStructureData, setNewStructureData] = useState({ name: '', totalAmount: '' });
 
-  const { data: students = [], isLoading: loadingLedger } = useQuery({
+  const { data: students = [], isLoading: loadingLedger, isFetching } = useQuery({
     queryKey: ['fees-ledger', activeBranchId],
     queryFn: async () => {
       const res = await apiClient.get('/fees', { params: { branchId: activeBranchId } });
       return res.data;
     },
     enabled: !!activeBranchId,
+    placeholderData: keepPreviousData,
   });
 
   const { data: feeStructures = [], isLoading: loadingStructures } = useQuery({
@@ -109,8 +111,11 @@ export default function FeesGlobalLedgerPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto py-6 px-4">
-      <div className="flex items-center justify-between shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight">Fees Dashboard</h1>
+      <div className="flex items-center justify-between shrink-0 mb-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">Fees & Financials</h1>
+          {isFetching && !loadingLedger && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+        </div>
       </div>
       
       <Tabs defaultValue="ledger" className="w-full">
@@ -234,7 +239,7 @@ export default function FeesGlobalLedgerPage() {
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              onClick={() => alert(`Reminder sent to ${student.firstName} for ₹${(overdueAmount / 100).toFixed(2)}!`)}
+                              onClick={() => toast.success(`Reminder sent to ${student.firstName} for ₹${(overdueAmount / 100).toFixed(2)}!`)}
                             >
                               Send Reminder
                             </Button>
@@ -270,8 +275,8 @@ export default function FeesGlobalLedgerPage() {
                       <Label>Total Amount (₹)</Label>
                       <Input type="number" required min="1" step="0.01" value={newStructureData.totalAmount} onChange={e => setNewStructureData({...newStructureData, totalAmount: e.target.value})} />
                     </div>
-                    <Button type="submit" className="w-full" disabled={createStructureMutation.isPending}>
-                      {createStructureMutation.isPending ? 'Saving...' : 'Create Structure'}
+                    <Button type="submit" className="w-full" isLoading={createStructureMutation.isPending}>
+                      Create Structure
                     </Button>
                   </form>
                 </DialogContent>

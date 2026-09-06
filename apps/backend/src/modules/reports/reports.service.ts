@@ -46,7 +46,7 @@ export class ReportsService {
         this.prisma.lead.count({ where: { branchId, status: { in: ['NEW', 'CONTACTED'] } } }),
         this.prisma.feeInvoice.findMany({ where: { student: { branchId }, status: 'PAID', paidDate: { gte: startOfMonth } } }),
         this.prisma.exam.findMany({ where: { branchId, examDate: { gte: new Date() }, status: 'SCHEDULED' }, orderBy: { examDate: 'asc' }, take: 3, include: { batch: true } }),
-        this.prisma.timetableSession.findMany({ where: { branchId, dayOfWeek: currentDay }, orderBy: { startTime: 'asc' }, include: { batch: true, teacher: { include: { teacherProfile: true } }, room: true } }),
+        this.prisma.timetableSession.findMany({ where: { branchId, dayOfWeek: currentDay }, orderBy: { startTime: 'asc' }, include: { batch: true, teacher: true, room: true } }),
         this.prisma.feeInvoice.findMany({ where: { student: { branchId }, status: 'PENDING' }, orderBy: { amount: 'desc' }, take: 5, include: { student: true } }),
         this.prisma.notice.findMany({ orderBy: { publishedAt: 'desc' }, take: 3 }),
         this.prisma.student.findMany({ where: { branchId, status: 'ENROLLED' }, orderBy: { admissionDate: 'desc' }, take: 5, include: { enrollments: { include: { batch: true } } } })
@@ -96,7 +96,7 @@ export class ReportsService {
           this.prisma.lead.count({ where: { branchId, status: { in: ['NEW', 'CONTACTED'] } } }),
           this.prisma.feeInvoice.findMany({ where: { student: { branchId }, status: 'PAID', paidDate: { gte: startOfMonth } } }),
           this.prisma.exam.findMany({ where: { branchId, examDate: { gte: new Date() }, status: 'SCHEDULED' }, orderBy: { examDate: 'asc' }, take: 3, include: { batch: true } }),
-          this.prisma.timetableSession.findMany({ where: { branchId, dayOfWeek: currentDay }, orderBy: { startTime: 'asc' }, include: { batch: true, teacher: { include: { teacherProfile: true } }, room: true } }),
+          this.prisma.timetableSession.findMany({ where: { branchId, dayOfWeek: currentDay }, orderBy: { startTime: 'asc' }, include: { batch: true, teacher: true, room: true } }),
           this.prisma.feeInvoice.findMany({ where: { student: { branchId }, status: 'PENDING' }, orderBy: { amount: 'desc' }, take: 5, include: { student: true } }),
           this.prisma.notice.findMany({ orderBy: { publishedAt: 'desc' }, take: 3 }),
           this.prisma.student.findMany({ where: { branchId, status: 'ENROLLED' }, orderBy: { admissionDate: 'desc' }, take: 5, include: { enrollments: { include: { batch: true } } } })

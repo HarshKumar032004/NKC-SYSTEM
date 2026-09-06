@@ -173,7 +173,7 @@ export class StudentsService {
 
       await this.logAudit(tx, user.id, 'CREATE', student.id, null, student, auditContext);
       return student;
-    });
+    }, { timeout: 15000 });
   }
 
   async findAll(query: StudentFilterQueryDto, user: User) {
@@ -287,19 +287,8 @@ export class StudentsService {
     });
   }
 
-  async generatePresignedUploadUrl(studentId: string, fileName: string, mimeType: string, sizeBytes: number, user: User) {
+  async addDocument(studentId: string, fileName: string, mimeType: string, sizeBytes: number, fileUrl: string, fileKey: string, user: User) {
     const isSuperAdmin = (user as any).role === 'SUPER_ADMIN';
-
-    // Validate MIME types
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-    if (!allowedMimeTypes.includes(mimeType)) {
-      throw new BadRequestException('Invalid file type');
-    }
-    
-    // Max 5MB
-    if (sizeBytes > 5 * 1024 * 1024) {
-      throw new BadRequestException('File exceeds 5MB limit');
-    }
 
     // Ensure student exists and belongs to branch (or user is SUPER_ADMIN)
     const student = await this.prisma.student.findFirst({
@@ -311,18 +300,6 @@ export class StudentsService {
     });
     if (!student) throw new NotFoundException('Student not found');
 
-    const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const fileKey = `students/${studentId}/docs/${Date.now()}-${sanitizedFileName}`;
-
-    const command = new PutObjectCommand({
-      Bucket: this.bucketName,
-      Key: fileKey,
-      ContentType: mimeType,
-    });
-
-    const url = await getSignedUrl(this.s3Client, command, { expiresIn: 300 }); // 5 mins
-
-    // Optimistically save Document DB record
     const document = await this.prisma.document.create({
       data: {
         studentId,
@@ -333,7 +310,7 @@ export class StudentsService {
       },
     });
 
-    return { uploadUrl: url, document };
+    return { document, fileUrl };
   }
 
   async generatePresignedDownloadUrl(studentId: string, documentId: string, user: User) {
@@ -351,13 +328,10 @@ export class StudentsService {
       throw new NotFoundException('Document not found');
     }
 
-    const command = new GetObjectCommand({
-      Bucket: this.bucketName,
-      Key: document.fileKey,
-    });
+    // Since we are using Supabase public bucket 'documents'
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dctnbaxvjwolehmqmkdx.supabase.co';
+    const url = `${supabaseUrl}/storage/v1/object/public/documents/${document.fileKey}`;
 
-    // 60-second presigned URL
-    const url = await getSignedUrl(this.s3Client, command, { expiresIn: 60 });
     return { downloadUrl: url };
   }
 

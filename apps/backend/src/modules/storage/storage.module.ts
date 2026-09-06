@@ -11,14 +11,22 @@ export const STORAGE_CLIENT = 'STORAGE_CLIENT';
     {
       provide: STORAGE_CLIENT,
       useFactory: (configService: ConfigService<EnvVars, true>) => {
+        const s3Endpoint = configService.get('S3_ENDPOINT', { infer: true });
         const accountId = configService.get('R2_ACCOUNT_ID', { infer: true });
+        
+        let endpoint = s3Endpoint;
+        if (!endpoint && accountId) {
+          endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+        }
+
         return new S3Client({
-          region: 'auto',
-          endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+          region: configService.get('S3_REGION', { infer: true }),
+          endpoint,
           credentials: {
             accessKeyId: configService.get('R2_ACCESS_KEY_ID', { infer: true }),
             secretAccessKey: configService.get('R2_SECRET_ACCESS_KEY', { infer: true }),
           },
+          forcePathStyle: !!s3Endpoint, // Supabase and Minio usually require this
         });
       },
       inject: [ConfigService],

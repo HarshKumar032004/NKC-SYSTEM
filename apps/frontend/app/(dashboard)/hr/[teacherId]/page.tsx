@@ -12,15 +12,16 @@ import { format } from 'date-fns';
 
 interface TeacherProfile {
   id: string;
+  name: string;
   specialization: string | null;
   qualification: string | null;
   joiningDate: string;
   baseSalary: number;
   hourlyRate: number;
-  user: {
+  user?: {
     email: string;
     isActive: boolean;
-  };
+  } | null;
   teacherSubjects: Array<{ subject: { name: string } }>;
   payrollRecords: Array<{
     id: string;
@@ -66,9 +67,15 @@ export default function TeacherProfilePage({ params }: { params: Promise<{ teach
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{teacher.user.email}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{teacher.name}</h1>
           <p className="text-muted-foreground flex items-center gap-2">
             {teacher.specialization || 'Teacher'}
+            {teacher.user?.email && (
+              <>
+                <span className="text-xs text-slate-400">•</span>
+                {teacher.user.email}
+              </>
+            )}
             <span className="text-xs text-slate-400">•</span>
             Joined {format(new Date(teacher.joiningDate), 'MMMM yyyy')}
           </p>

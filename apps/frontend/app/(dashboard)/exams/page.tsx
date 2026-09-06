@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import Link from 'next/link';
 import { ScheduleExamModal } from './components/schedule-exam-modal';
 import {
-  ClipboardList, Search, MoreHorizontal, PenLine, BarChart2, X,
+  ClipboardList, Search, MoreHorizontal, PenLine, BarChart2, X, Loader2
 } from 'lucide-react';
 
 export default function ExamsDashboardPage() {
@@ -32,10 +32,11 @@ export default function ExamsDashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  const { data: exams = [], isLoading, isError, refetch } = useQuery({
+  const { data: exams = [], isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ['exams', activeBranchId],
     queryFn: async () => (await apiClient.get('/exams')).data,
     enabled: !!activeBranchId,
+    placeholderData: keepPreviousData,
   });
 
   // ── Client-side filter ──────────────────────────────────────────────────
@@ -76,6 +77,7 @@ export default function ExamsDashboardPage() {
 
       {/* ── Filter Bar ─────────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 flex-wrap">
+        {isFetching && !isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mr-2" />}
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />

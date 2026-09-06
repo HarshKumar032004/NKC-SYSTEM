@@ -106,8 +106,9 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
       onClose();
     },
     onError: (err: any) => {
-      if (err.response?.status === 409) {
-        setConflictError(err.response.data.message);
+      if (err.response?.data?.message) {
+        // Use the backend's provided error message, this handles 409 Conflict, 400 Bad Request, etc.
+        setConflictError(Array.isArray(err.response.data.message) ? err.response.data.message[0] : err.response.data.message);
       } else {
         setConflictError('An unexpected error occurred while saving the schedule.');
       }
@@ -184,8 +185,8 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
                       <SelectContent>
                         {teachers.length > 0 ? (
                           teachers.map((t: any) => (
-                            <SelectItem key={t.user?.id || t.id} value={t.user?.id || t.id}>
-                              {t.user?.email || 'Unknown Teacher'}
+                            <SelectItem key={t.id} value={t.id}>
+                              {t.name || 'Unknown Teacher'}
                             </SelectItem>
                           ))
                         ) : (
@@ -275,14 +276,14 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
 
             <div className="flex justify-between pt-4">
               {session ? (
-                <Button type="button" variant="destructive" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+                <Button type="button" variant="destructive" onClick={() => deleteMutation.mutate()} isLoading={deleteMutation.isPending}>
                   Delete
                 </Button>
               ) : <div></div>}
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-                <Button type="submit" disabled={saveMutation.isPending}>
-                  {saveMutation.isPending ? 'Saving...' : 'Save Session'}
+                <Button type="submit" isLoading={saveMutation.isPending}>
+                  Save Session
                 </Button>
               </div>
             </div>

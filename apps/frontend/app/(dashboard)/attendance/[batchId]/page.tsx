@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 export default function RapidFireAttendancePage() {
   const params = useParams();
@@ -137,7 +138,7 @@ export default function RapidFireAttendancePage() {
       router.push('/attendance');
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || 'Failed to save attendance');
+      toast.error(err.response?.data?.message || 'Failed to save attendance');
     }
   });
 
@@ -172,8 +173,8 @@ export default function RapidFireAttendancePage() {
             className="border rounded p-2" 
           />
           <Button variant="outline" onClick={() => router.push('/attendance')}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? 'Saving...' : 'Save & Broadcast'}
+          <Button onClick={handleSubmit} isLoading={saveMutation.isPending}>
+            Save & Broadcast
           </Button>
         </div>
       </div>

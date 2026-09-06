@@ -154,17 +154,15 @@ export default function MarksEntryPage() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Button>
-        <Button
+        <Button 
           size="sm"
-          onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending || isPageLoading}
+          onClick={() => saveMutation.mutate()} 
+          isLoading={saveMutation.isPending}
+          disabled={isPageLoading}
           aria-label="Save marks"
+          className="gap-2"
         >
-          {saveMutation.isPending
-            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            : <Save className="h-3.5 w-3.5" />
-          }
-          {saveMutation.isPending ? 'Saving...' : 'Save Marks'}
+          Save Marks
         </Button>
       </PageHeader>
 

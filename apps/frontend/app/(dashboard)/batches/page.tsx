@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 const batchSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -92,7 +93,7 @@ export default function BatchesPage() {
       createForm.reset();
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to create batch.');
+      toast.error(error.response?.data?.message || 'Failed to create batch.');
     },
   });
 
@@ -104,7 +105,7 @@ export default function BatchesPage() {
       setIsEditOpen(false);
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to update batch.');
+      toast.error(error.response?.data?.message || 'Failed to update batch.');
     },
   });
 
@@ -115,7 +116,7 @@ export default function BatchesPage() {
       setIsDeleteOpen(false);
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to delete batch.');
+      toast.error(error.response?.data?.message || 'Failed to delete batch.');
     },
   });
 
@@ -344,8 +345,8 @@ export default function BatchesPage() {
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Saving...' : 'Save Batch'}
+                <Button type="submit" isLoading={createMutation.isPending}>
+                  Save Batch
                 </Button>
               </DialogFooter>
             </form>
@@ -441,8 +442,8 @@ export default function BatchesPage() {
                 />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                <Button type="submit" isLoading={updateMutation.isPending}>
+                  Save Changes
                 </Button>
               </DialogFooter>
             </form>
@@ -461,16 +462,16 @@ export default function BatchesPage() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
-            <Button
-              variant="destructive"
+            <Button 
+              variant="destructive" 
               onClick={() => {
                 if (selectedBatch?.id) {
                   deleteMutation.mutate(selectedBatch.id);
                 }
-              }}
-              disabled={deleteMutation.isPending}
+              }} 
+              isLoading={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete Batch'}
+              Delete Batch
             </Button>
           </DialogFooter>
         </DialogContent>

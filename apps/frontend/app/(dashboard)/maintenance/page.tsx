@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/store/auth-store';
 import { Loading } from '@/components/ui/loading';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Plus } from 'lucide-react';
+import { Plus, Wrench, MoreVertical, Loader2, CheckCircle2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +31,7 @@ export default function MaintenanceExpensesPage() {
     explanation: '',
   });
 
-  const { data: expenses = [], isLoading } = useQuery({
+  const { data: expenses = [], isLoading, isFetching } = useQuery({
     queryKey: ['maintenance-expenses', activeBranchId, filters],
     queryFn: async () => {
       const res = await apiClient.get('/maintenance', { 
@@ -44,6 +44,7 @@ export default function MaintenanceExpensesPage() {
       return res.data;
     },
     enabled: !!activeBranchId,
+    placeholderData: keepPreviousData,
   });
 
   const createExpenseMutation = useMutation({
@@ -92,7 +93,10 @@ export default function MaintenanceExpensesPage() {
   return (
     <div className="flex flex-col gap-6 max-w-6xl mx-auto py-6 px-4">
       <div className="flex items-center justify-between shrink-0">
-        <h1 className="text-2xl font-bold tracking-tight">Maintenance & Expenses</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">Maintenance & Expenses</h1>
+          {isFetching && !isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+        </div>
         
         <Dialog open={isNewExpenseOpen} onOpenChange={setIsNewExpenseOpen}>
           <DialogTrigger asChild>
@@ -149,8 +153,8 @@ export default function MaintenanceExpensesPage() {
                 <Textarea placeholder="Explain the issue and resolution..." rows={3} value={newExpense.explanation} onChange={e => setNewExpense({...newExpense, explanation: e.target.value})} />
               </div>
               
-              <Button type="submit" className="w-full" disabled={createExpenseMutation.isPending}>
-                {createExpenseMutation.isPending ? 'Saving...' : 'Log Expense'}
+              <Button type="submit" className="w-full" isLoading={createExpenseMutation.isPending}>
+                Log Expense
               </Button>
             </form>
           </DialogContent>
@@ -203,12 +207,11 @@ export default function MaintenanceExpensesPage() {
                       <td className="px-4 py-3 text-right">
                         {exp.status === 'PENDING' && (
                           <Button 
-                            variant="outline" 
-                            size="sm"
-                            disabled={resolveExpenseMutation.isPending}
+                            size="sm" 
                             onClick={() => resolveExpenseMutation.mutate(exp.id)}
+                            isLoading={resolveExpenseMutation.isPending}
                           >
-                            Mark Resolved
+                            Resolve
                           </Button>
                         )}
                       </td>

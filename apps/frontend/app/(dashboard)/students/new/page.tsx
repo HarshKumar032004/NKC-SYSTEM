@@ -9,6 +9,7 @@ import { CreateStudentSchema, type CreateStudentDto } from '@nkc/shared-types';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/store/auth-store';
 import { CheckCircle2, ChevronRight, GraduationCap, User, Users, FileText, Upload, Trash2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 const STEPS = [
   { id: 1, name: 'Personal Details', icon: User },
@@ -37,6 +39,7 @@ function NewStudentPageContent() {
   const [feeStructures, setFeeStructures] = useState<{id: string, name: string, totalAmount: number}[]>([]);
   const [documents, setDocuments] = useState<{ file: File; name: string }[]>([]);
   const [currentDocType, setCurrentDocType] = useState('Aadhar Card');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const searchParams = useSearchParams();
@@ -53,12 +56,7 @@ function NewStudentPageContent() {
     apiClient.get('/operations/branches').then(res => setBranches(res.data)).catch(console.error);
   }, []);
 
-  useEffect(() => {
-    if (activeBranchId) {
-      apiClient.get(`/operations/batches?branchId=${activeBranchId}`).then(res => setBatches(res.data)).catch(console.error);
-      apiClient.get(`/fees/structures?branchId=${activeBranchId}`).then(res => setFeeStructures(res.data)).catch(console.error);
-    }
-  }, [activeBranchId]);
+
 
   const form = useForm<z.input<typeof CreateStudentSchema>, any, z.infer<typeof CreateStudentSchema>>({
     resolver: zodResolver(CreateStudentSchema),
@@ -85,6 +83,14 @@ function NewStudentPageContent() {
     },
   });
 
+  useEffect(() => {
+    if (activeBranchId) {
+      form.setValue('branchId', activeBranchId);
+      apiClient.get(`/operations/batches?branchId=${activeBranchId}`).then(res => setBatches(res.data)).catch(console.error);
+      apiClient.get(`/fees/structures?branchId=${activeBranchId}`).then(res => setFeeStructures(res.data)).catch(console.error);
+    }
+  }, [activeBranchId, form]);
+
   const { fields: guardianFields, append: appendGuardian, remove: removeGuardian } = useFieldArray({
     control: form.control,
     name: 'guardians',
@@ -93,40 +99,94 @@ function NewStudentPageContent() {
   const onSubmit = async (data: z.infer<typeof CreateStudentSchema>) => {
     try {
       setIsUploading(true);
+
+      let photoUrl = '';
+      if (photoFile) {
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `photo-${Date.now()}.${fileExt}`;
+        const filePath = `students/temp-photos/${fileName}`; // Will be associated later, or we can just use a unique ID
+
+        const { error: photoUploadError } = await supabase.storage
+          .from('documents')
+          .upload(filePath, photoFile);
+
+        if (photoUploadError) throw photoUploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('documents')
+          .getPublicUrl(filePath);
+          
+        photoUrl = publicUrl;
+      }
+
       // Create Student
-      const res = await apiClient.post('/students', data);
+      const res = await apiClient.post<{ id: string }>('/students', {
+        ...data,
+        photoUrl: photoUrl || undefined,
+        leadId: leadId || undefined,
+      });
       const studentId = res.data.id;
 
       // Upload Documents
       if (documents.length > 0) {
         await Promise.all(documents.map(async (doc) => {
           try {
-            // Get Presigned URL
-            const urlRes = await apiClient.post(`/students/${studentId}/upload-url`, {
+            const fileExt = doc.file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `students/${studentId}/docs/${fileName}`;
+
+            // Upload directly to Supabase
+            const { error: uploadError } = await supabase.storage
+              .from('documents')
+              .upload(filePath, doc.file);
+
+            if (uploadError) throw uploadError;
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+              .from('documents')
+              .getPublicUrl(filePath);
+
+            // Save document metadata in backend
+            await apiClient.post(`/students/${studentId}/documents`, {
               fileName: `${doc.name} - ${doc.file.name}`,
               mimeType: doc.file.type,
               sizeBytes: doc.file.size,
-            });
-
-            // Upload directly to R2
-            await fetch(urlRes.data.uploadUrl, {
-              method: 'PUT',
-              body: doc.file,
-              headers: { 'Content-Type': doc.file.type },
+              fileUrl: publicUrl,
+              fileKey: filePath
             });
           } catch (e) {
             console.error(`Failed to upload ${doc.name}:`, e);
-            // We ignore individual document failures so admission isn't completely blocked
+            throw new Error(`Failed to upload document ${doc.name}. Ensure Supabase RLS allows inserts.`);
           }
         }));
       }
 
       router.push(`/students/${studentId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to create student:', error);
       setIsUploading(false);
-      // Fallback
+      toast.error(error?.message || 'Failed to create student or upload documents.');
       router.push('/students');
+    }
+  };
+
+  const onInvalid = (errors: any) => {
+    console.error('Validation Errors:', errors);
+    
+    // Create a readable error message
+    const errorFields = Object.keys(errors).join(', ');
+    toast.error(`Please fix errors before submitting. Check fields: ${errorFields}`);
+    
+    // Jump to the step with the first error
+    if (errors.firstName || errors.lastName || errors.dob || errors.gender || errors.bloodGroup || errors.email || errors.phone || errors.aadharNumber || errors.admissionDate || errors.previousSchool) {
+      setStep(1);
+    } else if (errors.guardians) {
+      setStep(2);
+    } else if (errors.batchId || errors.branchId) {
+      setStep(3);
+    } else if (errors.isHosteler || errors.discountPercent || errors.paymentType || errors.feeStructureIds) {
+      setStep(4);
     }
   };
 
@@ -178,7 +238,7 @@ function NewStudentPageContent() {
         </CardHeader>
         
         <CardContent className="p-6">
-          <form id="student-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form id="student-form" onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             
             {/* STEP 1 */}
             {step === 1 && (
@@ -369,12 +429,22 @@ function NewStudentPageContent() {
                 </div>
                 
                 <div className="p-6 border rounded-xl bg-slate-50/50 dark:bg-slate-900/50 flex flex-col items-center justify-center text-center border-dashed gap-2">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+                    {photoFile ? (
+                      <img src={URL.createObjectURL(photoFile)} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <FileText className="w-6 h-6 text-primary" />
+                    )}
                   </div>
                   <h4 className="font-semibold text-sm">Upload Student Photo</h4>
                   <p className="text-xs text-muted-foreground max-w-sm mb-2">Upload a recent passport-sized photograph (Max 5MB). Allowed formats: JPG, PNG.</p>
-                  <Input type="file" id="photo" accept="image/*" className="max-w-[250px] cursor-pointer" />
+                  <Input 
+                    type="file" 
+                    id="photo" 
+                    accept="image/*" 
+                    className="max-w-[250px] cursor-pointer"
+                    onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+                  />
                 </div>
               </div>
             )}

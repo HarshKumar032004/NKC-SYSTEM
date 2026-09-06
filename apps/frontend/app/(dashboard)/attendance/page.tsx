@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Calendar as CalendarIcon, Clock, Users, ArrowRight, UserCheck } from 'lucide-react';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { Calendar as CalendarIcon, Clock, Users, ArrowRight, UserCheck, Loader2 } from 'lucide-react';
 import { Loading } from '@/components/ui/loading';
 import { io, Socket } from 'socket.io-client';
 import Link from 'next/link';
@@ -23,10 +23,11 @@ export default function AttendanceDashboardPage() {
   const [filters, setFilters] = useState<Record<string, string>>({});
 
   // Fetch Teacher's Schedule
-  const { data: schedule = [], isLoading: scheduleLoading } = useQuery({
+  const { data: schedule = [], isLoading: scheduleLoading, isFetching } = useQuery({
     queryKey: ['attendance-schedule', date],
     queryFn: async () => (await apiClient.get('/attendance/schedule', { params: { date } })).data,
     enabled: !!token,
+    placeholderData: keepPreviousData,
   });
 
   // Connect WebSocket
@@ -64,7 +65,10 @@ export default function AttendanceDashboardPage() {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Live Attendance Dashboard</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">Live Attendance Dashboard</h1>
+          {isFetching && !scheduleLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+        </div>
         <input 
           type="date" 
           value={date} 
@@ -106,7 +110,9 @@ export default function AttendanceDashboardPage() {
 }
 
 function SessionAttendanceCard({ session, date, branchId }: { session: any, date: string, branchId: string }) {
-  const [isLocked, setIsLocked] = useState(true);
+  const user = useAuthStore(s => s.user);
+  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'BRANCH_ADMIN';
+  const [isLocked, setIsLocked] = useState(!isAdmin);
   const [lockReason, setLockReason] = useState('Loading...');
 
   const { data: rollup, isLoading } = useQuery({
@@ -122,6 +128,12 @@ function SessionAttendanceCard({ session, date, branchId }: { session: any, date
 
   useEffect(() => {
     const checkLock = () => {
+      if (isAdmin) {
+        setIsLocked(false);
+        setLockReason('Admin Override Active');
+        return;
+      }
+
       const today = new Date();
       const targetDate = new Date(date);
       
@@ -163,6 +175,7 @@ function SessionAttendanceCard({ session, date, branchId }: { session: any, date
     <Card className={`hover:shadow-md transition-shadow ${isLocked ? 'opacity-80' : 'ring-1 ring-primary'}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">{session.batch.name}</CardTitle>
+        <div className="text-sm font-medium text-blue-600 mb-1">Teacher: {session.teacher?.name || 'Unknown'}</div>
         <div className="text-sm text-muted-foreground flex justify-between">
           <span>{session.room.name}</span>
           <span className="font-medium text-slate-800 dark:text-slate-200">

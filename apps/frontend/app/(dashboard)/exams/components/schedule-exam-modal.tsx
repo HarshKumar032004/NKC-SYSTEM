@@ -48,7 +48,7 @@ export function ScheduleExamModal({ isOpen, onClose }: ScheduleExamModalProps) {
 
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers', activeBranchId],
-    queryFn: async () => (await apiClient.get('/users', { params: { branchId: activeBranchId, roleName: 'TEACHER' } })).data,
+    queryFn: async () => (await apiClient.get('/hr/teachers', { params: { branchId: activeBranchId } })).data,
     enabled: !!activeBranchId && isOpen,
   });
 
@@ -157,9 +157,13 @@ export function ScheduleExamModal({ isOpen, onClose }: ScheduleExamModalProps) {
                         <SelectTrigger><SelectValue placeholder="Select teacher" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {teachers.map((t: any) => (
-                          <SelectItem key={t.id} value={t.id}>{t.firstName} {t.lastName}</SelectItem>
-                        ))}
+                        {teachers.length > 0 ? (
+                          teachers.map((t: any) => (
+                            <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="empty" disabled>No teachers found</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -244,12 +248,11 @@ export function ScheduleExamModal({ isOpen, onClose }: ScheduleExamModalProps) {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>
+              <Button type="button" variant="outline" onClick={onClose} isLoading={mutation.isPending}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {mutation.isPending ? 'Scheduling...' : 'Schedule Exam'}
+              <Button type="submit" isLoading={mutation.isPending}>
+                Schedule Exam
               </Button>
             </DialogFooter>
           </form>

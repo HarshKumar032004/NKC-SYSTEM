@@ -42,7 +42,7 @@ export class TimetableConflictService {
 
     if (teacherConflict) {
       throw new ConflictException(
-        `Teacher ${teacherConflict.teacher.email} is already booked from ${teacherConflict.startTime} to ${teacherConflict.endTime} on ${dayOfWeek}.`
+        `Teacher ${teacherConflict.teacher.name} is already booked from ${teacherConflict.startTime} to ${teacherConflict.endTime} on ${dayOfWeek}.`
       );
     }
 

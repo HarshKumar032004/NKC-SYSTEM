@@ -281,10 +281,8 @@ model User {
   notices           Notice[]
   assignedLeads     Lead[]             @relation("LeadCounselor")
   leadFollowUps     LeadFollowUp[]
-  timetableSessions TimetableSession[]
   teacherProfile    TeacherProfile?
   issuedMaterials   MaterialIssue[]    @relation("Issuer")
-  examsInvigilated  Exam[]
 
   @@index([branchId, createdAt])
   @@index([branchId, isActive])
@@ -473,9 +471,9 @@ model Exam {
   createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz
 
-  batch       Batch         @relation(fields: [batchId], references: [id])
-  branch      Branch        @relation(fields: [branchId], references: [id])
-  invigilator User?         @relation(fields: [invigilatorId], references: [id])
+  batch       Batch           @relation(fields: [batchId], references: [id])
+  branch      Branch          @relation(fields: [branchId], references: [id])
+  invigilator TeacherProfile? @relation("ExamInvigilator", fields: [invigilatorId], references: [id])
   subjects    ExamSubject[]
   results     ExamResult[]
 
@@ -736,9 +734,9 @@ model TimetableSession {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  batch   Batch  @relation(fields: [batchId], references: [id])
-  teacher User   @relation(fields: [teacherId], references: [id])
-  room    Room   @relation(fields: [roomId], references: [id])
+  batch   Batch          @relation(fields: [batchId], references: [id])
+  teacher TeacherProfile @relation(fields: [teacherId], references: [id])
+  room    Room           @relation(fields: [roomId], references: [id])
   branch  Branch @relation(fields: [branchId], references: [id])
 
   @@index([branchId, dayOfWeek])
@@ -823,6 +821,8 @@ model TeacherProfile {
   branch          Branch           @relation(fields: [branchId], references: [id])
   teacherSubjects TeacherSubject[]
   payrollRecords  PayrollRecord[]
+  timetableSessions TimetableSession[]
+  examsInvigilated  Exam[] @relation("ExamInvigilator")
 
   @@index([branchId])
   @@map("teacher_profiles")

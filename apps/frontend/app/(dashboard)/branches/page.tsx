@@ -51,6 +51,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 export default function BranchesPage() {
   const { user } = useAuthStore();
@@ -77,7 +78,7 @@ export default function BranchesPage() {
       createForm.reset();
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to create branch.');
+      toast.error(error.response?.data?.message || 'Failed to create branch.');
     },
   });
 
@@ -89,7 +90,7 @@ export default function BranchesPage() {
       setIsEditOpen(false);
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to update branch.');
+      toast.error(error.response?.data?.message || 'Failed to update branch.');
     },
   });
 
@@ -100,7 +101,7 @@ export default function BranchesPage() {
       setIsDeleteOpen(false);
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to deactivate branch.');
+      toast.error(error.response?.data?.message || 'Failed to deactivate branch.');
     },
   });
 
@@ -470,8 +471,8 @@ export default function BranchesPage() {
               />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Saving...' : 'Save Branch'}
+                <Button type="submit" isLoading={createMutation.isPending}>
+                  Save Branch
                 </Button>
               </DialogFooter>
             </form>
@@ -663,8 +664,8 @@ export default function BranchesPage() {
               />
               </div>
               <DialogFooter>
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                <Button type="submit" isLoading={updateMutation.isPending}>
+                  Save Changes
                 </Button>
               </DialogFooter>
             </form>

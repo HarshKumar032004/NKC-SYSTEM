@@ -48,6 +48,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const roomSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -79,7 +80,7 @@ export default function RoomsPage() {
       createForm.reset();
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to create room.');
+      toast.error(error.response?.data?.message || 'Failed to create room.');
     },
   });
 
@@ -91,7 +92,7 @@ export default function RoomsPage() {
       setIsEditOpen(false);
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to update room.');
+      toast.error(error.response?.data?.message || 'Failed to update room.');
     },
   });
 
@@ -102,7 +103,7 @@ export default function RoomsPage() {
       setIsDeleteOpen(false);
     },
     onError: (error: any) => {
-      alert(error.response?.data?.message || 'Failed to archive room.');
+      toast.error(error.response?.data?.message || 'Failed to archive room.');
     },
   });
 
@@ -274,8 +275,8 @@ export default function RoomsPage() {
                 )}
               />
               <DialogFooter>
-                <Button type="submit" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Saving...' : 'Save Room'}
+                <Button type="submit" isLoading={createMutation.isPending}>
+                  Save Room
                 </Button>
               </DialogFooter>
             </form>
@@ -323,8 +324,8 @@ export default function RoomsPage() {
                 )}
               />
               <DialogFooter>
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+                <Button type="submit" isLoading={updateMutation.isPending}>
+                  Save Changes
                 </Button>
               </DialogFooter>
             </form>
@@ -343,16 +344,16 @@ export default function RoomsPage() {
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
-            <Button
-              variant="destructive"
+            <Button 
+              variant="destructive" 
               onClick={() => {
                 if (selectedRoom?.id) {
                   deleteMutation.mutate(selectedRoom.id);
                 }
               }}
-              disabled={deleteMutation.isPending}
+              isLoading={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Archiving...' : 'Archive Room'}
+              Archive Room
             </Button>
           </DialogFooter>
         </DialogContent>

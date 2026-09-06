@@ -36,7 +36,7 @@ async function runTest() {
       prisma.lead.count({ where: { branchId, status: { in: ['NEW', 'CONTACTED'] } } }),
       prisma.feeInvoice.findMany({ where: { student: { branchId }, status: 'PAID', paidDate: { gte: startOfMonth } } }),
       prisma.exam.findMany({ where: { branchId, examDate: { gte: new Date() }, status: 'SCHEDULED' }, orderBy: { examDate: 'asc' }, take: 3, include: { batch: true } }),
-      prisma.timetableSession.findMany({ where: { branchId, dayOfWeek: currentDay }, orderBy: { startTime: 'asc' }, include: { batch: true, teacher: { include: { teacherProfile: true } }, room: true } }),
+      prisma.timetableSession.findMany({ where: { branchId, dayOfWeek: currentDay }, orderBy: { startTime: 'asc' }, include: { batch: true, teacher: true, room: true } }),
       prisma.feeInvoice.findMany({ where: { student: { branchId }, status: 'PENDING' }, orderBy: { amount: 'desc' }, take: 5, include: { student: true } }),
       prisma.notice.findMany({ orderBy: { publishedAt: 'desc' }, take: 3 }),
       prisma.student.findMany({ where: { branchId, status: 'ENROLLED' }, orderBy: { admissionDate: 'desc' }, take: 5, include: { enrollments: { include: { batch: true } } } })

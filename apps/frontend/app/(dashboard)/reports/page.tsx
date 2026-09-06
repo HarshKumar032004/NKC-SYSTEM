@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { DownloadCloud, TrendingUp, Users, CheckCircle, Activity } from 'lucide-react';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 export default function ReportsDashboard() {
   const [exporting, setExporting] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export default function ReportsDashboard() {
       await apiClient.post('/reports/export', { type });
       // The socket notification will handle the download link
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Export failed');
+      toast.error(err.response?.data?.message || 'Export failed');
     } finally {
       setExporting(null);
     }

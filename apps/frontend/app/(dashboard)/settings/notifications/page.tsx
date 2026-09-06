@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 export default function NotificationSettingsPage() {
   const [templates, setTemplates] = useState([
@@ -52,7 +53,7 @@ export default function NotificationSettingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Notification Templates</h1>
           <p className="text-sm text-slate-500">Manage automated message templates across WhatsApp, SMS, and Email.</p>
         </div>
-        <Button onClick={() => alert('Create new template placeholder')}>Create Template</Button>
+        <Button onClick={() => toast('Create new template placeholder')}>Create Template</Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -146,7 +147,7 @@ export default function NotificationSettingsPage() {
                 {isEditing && (
                   <div className="flex justify-end gap-2 pt-4 border-t">
                     <Button variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
-                    <Button onClick={() => { alert('Saved successfully'); setIsEditing(false); }}>Save Changes</Button>
+                    <Button onClick={() => { toast.success('Saved successfully'); setIsEditing(false); }}>Save Changes</Button>
                   </div>
                 )}
 

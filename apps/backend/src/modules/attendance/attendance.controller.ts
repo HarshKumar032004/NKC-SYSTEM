@@ -41,6 +41,6 @@ export class AttendanceController {
     @Query('date') date: string,
     @Req() req: any
   ) {
-    return this.attendanceService.getTeacherSchedule(req.user.id, date);
+    return this.attendanceService.getTeacherSchedule(req.user, date);
   }
 }

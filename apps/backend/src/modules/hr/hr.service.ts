@@ -17,6 +17,30 @@ export class HrService {
 
     if (!sessions.length) return 0;
 
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
+    const endDate = new Date(Date.UTC(year, month, 0)); // last day of month
+
+    // Find all attendance records for this branch in this month
+    const attendanceRecords = await this.prisma.attendanceRecord.findMany({
+      where: {
+        branchId,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        }
+      },
+      select: {
+        batchId: true,
+        date: true
+      },
+      distinct: ['batchId', 'date']
+    });
+
+    // Create a Set of "YYYY-MM-DD_batchId" for fast lookup
+    const completedClasses = new Set(
+      attendanceRecords.map(r => `${r.date.toISOString().split('T')[0]}_${r.batchId}`)
+    );
+
     let totalMinutes = 0;
     const daysInMonth = getDaysInMonth(new Date(year, month - 1));
 
@@ -31,22 +55,26 @@ export class HrService {
       SATURDAY: 6,
     };
 
-    // Calculate occurrences of each day of week in the given month
-    const dayCounts = [0, 0, 0, 0, 0, 0, 0];
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month - 1, day);
-      dayCounts[getDay(date)]++;
-    }
-
     sessions.forEach((session) => {
       const start = parse(session.startTime, 'HH:mm', new Date());
       const end = parse(session.endTime, 'HH:mm', new Date());
       
       const durationMinutes = differenceInMinutes(end, start);
-      if (durationMinutes > 0) {
-        const jsDay = dayMap[session.dayOfWeek];
-        const occurrences = dayCounts[jsDay];
-        totalMinutes += (durationMinutes * occurrences);
+      if (durationMinutes <= 0) return;
+
+      const jsDay = dayMap[session.dayOfWeek];
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        // Construct date as UTC midnight to match Prisma's @db.Date parsing
+        const date = new Date(Date.UTC(year, month - 1, day));
+        
+        if (date.getUTCDay() === jsDay) {
+          const dateStr = date.toISOString().split('T')[0];
+          const key = `${dateStr}_${session.batchId}`;
+          if (completedClasses.has(key)) {
+            totalMinutes += durationMinutes;
+          }
+        }
       }
     });
 
@@ -131,9 +159,9 @@ export class HrService {
    * Create a new teacher (creates User and TeacherProfile)
    */
   async createTeacher(branchId: string, data: any) {
-    // 1. Get the TEACHER role
+    // 1. Get the FACULTY role
     const role = await this.prisma.role.findUnique({
-      where: { name: 'TEACHER' } // Ensure your DB uses 'TEACHER' as role name
+      where: { name: 'FACULTY' } 
     });
 
     if (!role) {

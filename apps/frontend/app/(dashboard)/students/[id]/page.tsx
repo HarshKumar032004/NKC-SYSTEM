@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { Download, FileText, UserCircle, Activity, History, Upload, BarChart } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { supabase } from '@/lib/supabase';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { toast } from 'sonner';
 
 export default function StudentProfilePage() {
   const params = useParams();
@@ -56,24 +58,32 @@ export default function StudentProfilePage() {
 
     try {
       setIsUploading(true);
-      const { data } = await apiClient.post(`/students/${id}/upload-url`, {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `students/${id}/docs/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+      await apiClient.post(`/students/${id}/documents`, {
         fileName: `${uploadDocType} - ${file.name}`,
         mimeType: file.type,
-        sizeBytes: file.size
-      });
-
-      await fetch(data.uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
+        sizeBytes: file.size,
+        fileUrl: publicUrl,
+        fileKey: filePath
       });
 
       await queryClient.invalidateQueries({ queryKey: ['student', id] });
     } catch (error) {
       console.error('Failed to upload document:', error);
-      alert('Failed to upload document. Please ensure it is a valid format and size.');
+      toast.error('Failed to upload document. Please ensure it is a valid format and size.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {

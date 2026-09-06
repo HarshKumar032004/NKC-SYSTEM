@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { SessionModal } from './components/session-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 export default function TimetablePage() {
   const queryClient = useQueryClient();
@@ -50,7 +51,7 @@ export default function TimetablePage() {
         
         return {
           id: s.id,
-          title: `${s.batch.name} - ${s.teacher.firstName} (${s.room.name})`,
+          title: `${s.batch.name} - ${s.teacher.name || 'Unknown'} (${s.room.name})`,
           startTime: s.startTime,
           endTime: s.endTime,
           daysOfWeek: [daysMap[s.dayOfWeek]],
@@ -68,7 +69,7 @@ export default function TimetablePage() {
       queryClient.invalidateQueries({ queryKey: ['timetable-sessions'] });
     },
     onError: (err: any) => {
-      alert(err.response?.data?.message || 'Failed to update session');
+      toast.error(err.response?.data?.message || 'Failed to update session');
       // Revert the event on the calendar visually by refetching
       queryClient.invalidateQueries({ queryKey: ['timetable-sessions'] });
     }

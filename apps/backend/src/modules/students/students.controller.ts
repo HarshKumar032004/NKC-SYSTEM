@@ -42,17 +42,17 @@ export class StudentsController {
     return this.studentsService.update(id, updateStudentDto, req.user, auditContext);
   }
 
-  @Post(':id/upload-url')
+  @Post(':id/documents')
   @CheckPolicies((ability) => ability.can(Action.Update, 'Student'))
-  generateUploadUrl(
+  addDocument(
     @Param('id') id: string,
-    @Body() fileMeta: { fileName: string; mimeType: string; sizeBytes: number },
+    @Body() fileMeta: { fileName: string; mimeType: string; sizeBytes: number; fileUrl: string; fileKey: string },
     @Req() req: any
   ) {
-    if (!fileMeta.fileName || !fileMeta.mimeType || !fileMeta.sizeBytes) {
+    if (!fileMeta.fileName || !fileMeta.mimeType || !fileMeta.sizeBytes || !fileMeta.fileUrl || !fileMeta.fileKey) {
       throw new BadRequestException('Missing file metadata');
     }
-    return this.studentsService.generatePresignedUploadUrl(id, fileMeta.fileName, fileMeta.mimeType, fileMeta.sizeBytes, req.user);
+    return this.studentsService.addDocument(id, fileMeta.fileName, fileMeta.mimeType, fileMeta.sizeBytes, fileMeta.fileUrl, fileMeta.fileKey, req.user);
   }
 
   @Get(':id/documents/:documentId/download-url')

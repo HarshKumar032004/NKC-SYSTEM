@@ -176,15 +176,21 @@ export class AttendanceService {
     });
   }
 
-  async getTeacherSchedule(teacherId: string, dateStr: string) {
+  async getTeacherSchedule(user: any, dateStr: string) {
     const dateObj = new Date(dateStr);
     const dayOfWeek = getDayOfWeekFromDate(dateObj);
 
+    const isAdmin = user.role === 'SUPER_ADMIN' || user.role === 'BRANCH_ADMIN';
+    const whereClause: any = { dayOfWeek };
+
+    if (isAdmin) {
+      whereClause.branchId = user.branchId;
+    } else {
+      whereClause.teacherId = user.id;
+    }
+
     return this.prisma.timetableSession.findMany({
-      where: {
-        teacherId,
-        dayOfWeek,
-      },
+      where: whereClause,
       include: {
         batch: { select: { id: true, name: true } },
         room: { select: { name: true } }

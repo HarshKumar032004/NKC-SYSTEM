@@ -231,8 +231,8 @@ function ResetPasswordForm() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Resetting...' : 'Reset Password'}
+            <Button type="submit" className="w-full" isLoading={loading}>
+              Reset Password
             </Button>
           </CardFooter>
         </form>

@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Package, AlertTriangle, IdCard, Send } from 'lucide-react';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 interface InventoryItem {
   id: string;
@@ -45,12 +46,23 @@ interface InventoryItem {
 export default function InventoryDashboardPage() {
   const queryClient = useQueryClient();
   const [issueModalOpen, setIssueModalOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   
   // Issue Modal State
   const [studentId, setStudentId] = useState('');
   const [issueQuantity, setIssueQuantity] = useState(1);
   const [issueRemarks, setIssueRemarks] = useState('');
+
+  // Add Modal State
+  const [newItemData, setNewItemData] = useState({
+    name: '',
+    category: 'STATIONERY',
+    sku: '',
+    price: 0,
+    minStockThreshold: 10,
+    initialStock: 0,
+  });
 
   const { data: inventory, isLoading } = useQuery({
     queryKey: ['inventory'],
@@ -71,6 +83,26 @@ export default function InventoryDashboardPage() {
       setStudentId('');
       setIssueQuantity(1);
       setIssueRemarks('');
+    }
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async (payload: typeof newItemData) => {
+      const { data } = await apiClient.post('/operations/inventory', payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      setAddModalOpen(false);
+      toast.success('Inventory item created successfully!');
+      setNewItemData({
+        name: '',
+        category: 'STATIONERY',
+        sku: '',
+        price: 0,
+        minStockThreshold: 10,
+        initialStock: 0,
+      });
     }
   });
 
@@ -155,6 +187,11 @@ export default function InventoryDashboardPage() {
     });
   };
 
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
+    addMutation.mutate(newItemData);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -172,7 +209,7 @@ export default function InventoryDashboardPage() {
               ID Card Print Center
             </Link>
           </Button>
-          <Button>
+          <Button onClick={() => setAddModalOpen(true)}>
             <Package className="mr-2 h-4 w-4" />
             Add New Item
           </Button>
@@ -270,7 +307,104 @@ export default function InventoryDashboardPage() {
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIssueModalOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={issueMutation.isPending}>
-                {issueMutation.isPending ? 'Issuing...' : 'Issue Item'}
+                Issue Item
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add New Item Modal */}
+      <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Inventory Item</DialogTitle>
+            <DialogDescription>
+              Create a new item to track in the inventory system.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAdd}>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Item Name</Label>
+                  <Input 
+                    id="name" 
+                    required 
+                    value={newItemData.name}
+                    onChange={e => setNewItemData({...newItemData, name: e.target.value})}
+                    placeholder="e.g. NoteBook A4"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sku">SKU / Code</Label>
+                  <Input 
+                    id="sku" 
+                    required 
+                    value={newItemData.sku}
+                    onChange={e => setNewItemData({...newItemData, sku: e.target.value})}
+                    placeholder="e.g. NB-A4-100"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <select 
+                    id="category"
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
+                    value={newItemData.category}
+                    onChange={e => setNewItemData({...newItemData, category: e.target.value})}
+                  >
+                    <option value="UNIFORM">Uniform</option>
+                    <option value="STATIONERY">Stationery</option>
+                    <option value="BOOKS">Books</option>
+                    <option value="EQUIPMENT">Equipment</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price (₹)</Label>
+                  <Input 
+                    id="price" 
+                    type="number" 
+                    min="0"
+                    step="0.01"
+                    required 
+                    value={newItemData.price / 100}
+                    onChange={e => setNewItemData({...newItemData, price: Math.round(Number(e.target.value) * 100)})}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="initialStock">Initial Stock</Label>
+                  <Input 
+                    id="initialStock" 
+                    type="number" 
+                    min="0"
+                    required 
+                    value={newItemData.initialStock}
+                    onChange={e => setNewItemData({...newItemData, initialStock: Number(e.target.value)})}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="minThreshold">Low Stock Alert at</Label>
+                  <Input 
+                    id="minThreshold" 
+                    type="number" 
+                    min="0"
+                    required 
+                    value={newItemData.minStockThreshold}
+                    onChange={e => setNewItemData({...newItemData, minStockThreshold: Number(e.target.value)})}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setAddModalOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={addMutation.isPending}>
+                Create Item
               </Button>
             </DialogFooter>
           </form>

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { useAuthStore } from '@/store/auth-store';
 import { Loading } from '@/components/ui/loading';
@@ -11,7 +11,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Search, Plus, MoreHorizontal } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Loader2 } from 'lucide-react';
 import { DataTableFilter } from '@/components/ui/data-table-filter';
 
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ export default function StudentsPage() {
     enabled: !!activeBranchId,
   });
 
-  const { data: students = [], isLoading } = useQuery({
+  const { data: students = [], isLoading, isFetching } = useQuery({
     queryKey: ['students', activeBranchId, filters],
     queryFn: async () => {
       const res = await apiClient.get<Student[]>('/students', {
@@ -61,6 +61,7 @@ export default function StudentsPage() {
       return res.data;
     },
     enabled: !!activeBranchId,
+    placeholderData: keepPreviousData,
   });
 
   const filterOptions = [
@@ -158,7 +159,10 @@ export default function StudentsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Students</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight">Students</h1>
+          {isFetching && !isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+        </div>
         <Button asChild>
           <Link href="/students/new">
             <Plus className="mr-2 h-4 w-4" /> Add Student

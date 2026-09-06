@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Calculator, ExternalLink } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 interface Teacher {
   id: string;
@@ -130,6 +131,11 @@ export default function TeacherDirectoryPage() {
       queryClient.invalidateQueries({ queryKey: ['teachers'] });
       setIsOpen(false);
       setFormData(defaultFormData);
+      toast.success('Teacher created successfully!');
+    },
+    onError: (error: any) => {
+      console.error('Failed to create teacher:', error);
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to create teacher. Please check the inputs.');
     }
   });
 
@@ -281,8 +287,8 @@ export default function TeacherDirectoryPage() {
                   )}
                 </div>
 
-                <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? 'Creating...' : 'Create Teacher'}
+                <Button type="submit" className="w-full" isLoading={createMutation.isPending}>
+                  Create Teacher
                 </Button>
               </form>
             </DialogContent>

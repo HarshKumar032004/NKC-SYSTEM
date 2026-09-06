@@ -11,6 +11,7 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip
 } from 'recharts';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 export default function ExamResultsPage() {
   const params = useParams();
@@ -29,7 +30,7 @@ export default function ExamResultsPage() {
       const { data } = await apiClient.get(`/exams/${examId}/report-card/${studentId}`);
       window.open(data.url, '_blank');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to generate report card');
+      toast.error(err.response?.data?.message || 'Failed to generate report card');
     }
   };
 
