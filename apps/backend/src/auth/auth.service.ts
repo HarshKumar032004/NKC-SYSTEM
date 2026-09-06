@@ -81,22 +81,23 @@ export class AuthService {
       
       if (lastDevice && lastDevice !== currentDevice) {
         this.logger.warn(`[Security Alert Email Queued] Unrecognized device detected for user ${user.id} (${user.email}). IP: ${ip} | User-Agent: ${userAgent}`);
-        await this.alertsService.sendSecurityAlert(
+        // Run asynchronously so it doesn't block the login request if SMTP is slow/failing
+        this.alertsService.sendSecurityAlert(
           'Unrecognized Device Login',
           `A new login was detected for your account from an unrecognized device or location.`,
           { ip, userAgent, email: user.email }
-        );
+        ).catch(e => this.logger.error('Failed to send background alert', e));
       }
       
       await this.redisClient.set(`device:${user.id}`, currentDevice);
     }
 
     if (user.role?.name === 'SUPER_ADMIN') {
-      await this.alertsService.sendSecurityAlert(
+      this.alertsService.sendSecurityAlert(
         'SUPER_ADMIN Login Detected',
         `A SuperAdmin account (${user.email}) just logged into the system.`,
         { ip, userAgent, timestamp: new Date().toISOString() }
-      );
+      ).catch(e => this.logger.error('Failed to send background alert', e));
     }
 
     if (user.mfaSecret) {
