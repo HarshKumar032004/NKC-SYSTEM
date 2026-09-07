@@ -9,6 +9,11 @@ import { AppModule } from './app.module';
 import type { EnvVars } from './config/env.schema';
 import { TenantInterceptor } from './common/tenant/tenant.interceptor';
 
+// Prisma returns BigInt for raw queries which breaks Fastify JSON serialization
+(BigInt.prototype as any).toJSON = function () {
+  return Number(this);
+};
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
