@@ -48,15 +48,19 @@ export default function StudentsPage() {
 
   const { data: batches = [] } = useQuery({
     queryKey: ['batches', activeBranchId],
-    queryFn: async () => (await apiClient.get('/operations/batches', { params: { branchId: activeBranchId } })).data,
+    queryFn: async ({ signal }) => (await apiClient.get('/operations/batches', { 
+      params: { branchId: activeBranchId },
+      signal 
+    })).data,
     enabled: !!activeBranchId,
   });
 
   const { data: students = [], isLoading, isFetching } = useQuery({
     queryKey: ['students', activeBranchId, filters],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const res = await apiClient.get<Student[]>('/students', {
         params: { branchId: activeBranchId, ...filters },
+        signal
       });
       return res.data;
     },

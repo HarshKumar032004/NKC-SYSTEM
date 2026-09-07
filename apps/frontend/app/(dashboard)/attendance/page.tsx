@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { Calendar as CalendarIcon, Clock, Users, ArrowRight, UserCheck, Loader2 } from 'lucide-react';
 import { Loading } from '@/components/ui/loading';
@@ -17,7 +17,8 @@ export default function AttendanceDashboardPage() {
   const queryClient = useQueryClient();
   const activeBranchId = useAuthStore(s => s.activeBranchId);
   const token = useAuthStore(s => s.accessToken);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const isMountedRef = useRef(true);
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [filters, setFilters] = useState<Record<string, string>>({});
@@ -25,27 +26,47 @@ export default function AttendanceDashboardPage() {
   // Fetch Teacher's Schedule
   const { data: schedule = [], isLoading: scheduleLoading, isFetching } = useQuery({
     queryKey: ['attendance-schedule', date],
-    queryFn: async () => (await apiClient.get('/attendance/schedule', { params: { date } })).data,
+    queryFn: async ({ signal }) => {
+      const res = await apiClient.get('/attendance/schedule', { 
+        params: { date },
+        signal 
+      });
+      return res.data;
+    },
     enabled: !!token,
     placeholderData: keepPreviousData,
   });
 
-  // Connect WebSocket
+  // Connect WebSocket - only on mount, not on date change
   useEffect(() => {
+    isMountedRef.current = true;
+    
     if (!token || !activeBranchId) return;
 
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001';
+    
+    // Prevent duplicate connections
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('joinBranch', activeBranchId);
+      return;
+    }
+
     const newSocket = io(wsUrl, {
-      auth: { token }
+      auth: { token },
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     newSocket.on('connect', () => {
-      newSocket.emit('joinBranch', activeBranchId);
+      if (isMountedRef.current) {
+        newSocket.emit('joinBranch', activeBranchId);
+      }
     });
 
     newSocket.on('attendance.updated', (payload) => {
-      // payload = { batchId, date, PRESENT, ABSENT, LATE, TOTAL }
-      if (payload.date === date) {
+      if (isMountedRef.current && payload.date === date) {
         queryClient.setQueryData(
           ['attendance-rollup', activeBranchId, payload.batchId, date],
           payload
@@ -53,12 +74,31 @@ export default function AttendanceDashboardPage() {
       }
     });
 
-    setSocket(newSocket);
+    newSocket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason);
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    socketRef.current = newSocket;
 
     return () => {
-      newSocket.disconnect();
+      isMountedRef.current = false;
+      if (newSocket.connected) {
+        newSocket.disconnect();
+      }
+      socketRef.current = null;
     };
-  }, [token, activeBranchId, date, queryClient]);
+  }, [token, activeBranchId, queryClient]); // Removed date from deps
+
+  // Handle date change - just update the query key, don't reconnect socket
+  useEffect(() => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit('joinBranch', activeBranchId);
+    }
+  }, [date, activeBranchId]);
 
   if (scheduleLoading) return <Loading variant="page" text="Loading Today's Schedule..." />;
 
@@ -114,62 +154,76 @@ function SessionAttendanceCard({ session, date, branchId }: { session: any, date
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'BRANCH_ADMIN';
   const [isLocked, setIsLocked] = useState(!isAdmin);
   const [lockReason, setLockReason] = useState('Loading...');
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
 
   const { data: rollup, isLoading } = useQuery({
     queryKey: ['attendance-rollup', branchId, session.batchId, date],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const res = await apiClient.get('/attendance/rollup', {
-        params: { batchId: session.batchId, date, branchId }
+        params: { batchId: session.batchId, date, branchId },
+        signal
       });
       return res.data;
     },
     enabled: !!branchId && !!session.batchId,
   });
 
-  useEffect(() => {
-    const checkLock = () => {
-      if (isAdmin) {
-        setIsLocked(false);
-        setLockReason('Admin Override Active');
-        return;
-      }
+  const checkLock = useCallback(() => {
+    if (!isMountedRef.current) return;
+    
+    if (isAdmin) {
+      setIsLocked(false);
+      setLockReason('Admin Override Active');
+      return;
+    }
 
-      const today = new Date();
-      const targetDate = new Date(date);
-      
-      if (today.toDateString() !== targetDate.toDateString()) {
-        setIsLocked(true);
-        setLockReason('Can only mark attendance for today.');
-        return;
-      }
+    const today = new Date();
+    const targetDate = new Date(date);
+    
+    if (today.toDateString() !== targetDate.toDateString()) {
+      setIsLocked(true);
+      setLockReason('Can only mark attendance for today.');
+      return;
+    }
 
-      const parseTime = (timeStr: string) => {
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const d = new Date();
-        d.setHours(hours, minutes, 0, 0);
-        return d;
-      };
-
-      const start = parseTime(session.startTime);
-      const end = parseTime(session.endTime);
-      const endWindow = new Date(end.getTime() + 30 * 60000); // +30 mins
-
-      if (today < start) {
-        setIsLocked(true);
-        setLockReason(`Unlocks at ${session.startTime}`);
-      } else if (today > endWindow) {
-        setIsLocked(true);
-        setLockReason(`Locked. Window ended at ${endWindow.toTimeString().substring(0,5)}`);
-      } else {
-        setIsLocked(false);
-        setLockReason('Register Unlocked');
-      }
+    const parseTime = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      const d = new Date();
+      d.setHours(hours, minutes, 0, 0);
+      return d;
     };
 
+    const start = parseTime(session.startTime);
+    const end = parseTime(session.endTime);
+    const endWindow = new Date(end.getTime() + 30 * 60000); // +30 mins
+
+    if (today < start) {
+      setIsLocked(true);
+      setLockReason(`Unlocks at ${session.startTime}`);
+    } else if (today > endWindow) {
+      setIsLocked(true);
+      setLockReason(`Locked. Window ended at ${endWindow.toTimeString().substring(0,5)}`);
+    } else {
+      setIsLocked(false);
+      setLockReason('Register Unlocked');
+    }
+  }, [date, session, isAdmin]);
+
+  useEffect(() => {
+    isMountedRef.current = true;
     checkLock();
-    const interval = setInterval(checkLock, 60000); // Check every minute
-    return () => clearInterval(interval);
-  }, [date, session]);
+    
+    intervalRef.current = setInterval(checkLock, 60000);
+    
+    return () => {
+      isMountedRef.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [checkLock]);
 
   return (
     <Card className={`hover:shadow-md transition-shadow ${isLocked ? 'opacity-80' : 'ring-1 ring-primary'}`}>

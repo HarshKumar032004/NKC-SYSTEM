@@ -44,8 +44,11 @@ export default function AdmissionsCRMPage() {
 
   const { data: leads = [], isLoading, isFetching } = useQuery({
     queryKey: ['leads', activeBranchId, filters],
-    queryFn: async () => {
-      const res = await apiClient.get('/admissions/leads', { params: { branchId: activeBranchId, ...filters } });
+    queryFn: async ({ signal }) => {
+      const res = await apiClient.get('/admissions/leads', { 
+        params: { branchId: activeBranchId, ...filters },
+        signal 
+      });
       return res.data;
     },
     enabled: !!activeBranchId,
