@@ -18,7 +18,8 @@ export class UsersService {
     return this.prisma.user.findMany({
       where: { branchId },
       include: { role: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 100
     });
   }
 

@@ -144,6 +144,7 @@ export class HrService {
   async getTeachers(branchId: string) {
     return this.prisma.teacherProfile.findMany({
       where: { branchId },
+      take: 100,
       include: {
         user: {
           select: { id: true, email: true, isActive: true },

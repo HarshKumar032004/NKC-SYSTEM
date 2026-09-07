@@ -32,6 +32,7 @@ export class MaintenanceService {
     return this.prisma.maintenanceExpense.findMany({
       where,
       orderBy: { createdAt: 'desc' },
+      take: 100,
     });
   }
 

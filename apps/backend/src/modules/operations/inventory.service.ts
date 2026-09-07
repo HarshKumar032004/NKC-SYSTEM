@@ -15,6 +15,7 @@ export class InventoryService {
     return this.prisma.inventoryItem.findMany({
       where: { branchId },
       orderBy: { name: 'asc' },
+      take: 100,
     });
   }
 

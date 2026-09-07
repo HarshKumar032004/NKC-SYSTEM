@@ -49,7 +49,8 @@ export class FeesService {
           orderBy: { dueDate: 'asc' }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: 100
     });
   }
 

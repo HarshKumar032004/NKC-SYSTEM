@@ -229,7 +229,8 @@ export class ExamsService {
     return this.prisma.exam.findMany({
       where: { branchId },
       include: { batch: true, subjects: true },
-      orderBy: { examDate: 'desc' }
+      orderBy: { examDate: 'desc' },
+      take: 100
     });
   }
 

@@ -24,14 +24,16 @@ export class OperationsController {
   async getBranches() {
     return this.prisma.branch.findMany({
       where: { isActive: true },
-      select: { id: true, name: true, code: true }
+      select: { id: true, name: true, code: true },
+      take: 100
     });
   }
 
   @Get('courses')
   async getCourses() {
     return this.prisma.course.findMany({
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
+      take: 100
     });
   }
 
@@ -78,7 +80,8 @@ export class OperationsController {
 
     const allBatches = await this.prisma.batch.findMany({
       where: branchId ? { branchId } : undefined,
-      select: { id: true, name: true, capacity: true, branchId: true, courseId: true, startDate: true, endDate: true }
+      select: { id: true, name: true, capacity: true, branchId: true, courseId: true, startDate: true, endDate: true },
+      take: 100
     });
 
     // Sort according to standard order
@@ -132,7 +135,8 @@ export class OperationsController {
   async getRooms(@Req() req: any) {
     return this.prisma.room.findMany({
       where: { branchId: req.user.branchId, isArchived: false },
-      orderBy: { name: 'asc' }
+      orderBy: { name: 'asc' },
+      take: 100
     });
   }
 

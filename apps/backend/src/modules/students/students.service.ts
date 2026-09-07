@@ -218,7 +218,7 @@ export class StudentsService {
 
     const students = await this.prisma.student.findMany({
       where,
-      take: query.take,
+      take: query.take ? Number(query.take) : 100,
       ...(query.cursor ? { skip: 1, cursor: { id: query.cursor } } : {}),
       orderBy: { createdAt: 'desc' },
       include: {

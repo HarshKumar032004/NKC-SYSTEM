@@ -57,7 +57,8 @@ export class AdmissionsService {
     return this.prisma.lead.findMany({
       where,
       include: { assignedCounselor: { select: { id: true, email: true } }, followUps: true },
-      orderBy: { updatedAt: 'desc' }
+      orderBy: { updatedAt: 'desc' },
+      take: 100
     });
   }
 
