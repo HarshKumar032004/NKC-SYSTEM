@@ -37,7 +37,9 @@ export default function DashboardPage() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['dashboard-kpis', activeBranchId],
     queryFn: async () => {
-      const res = await apiClient.get('/reports/kpis');
+      const res = await apiClient.get('/reports/kpis', {
+        params: { branchId: activeBranchId }
+      });
       return res.data;
     },
     enabled: !!activeBranchId,

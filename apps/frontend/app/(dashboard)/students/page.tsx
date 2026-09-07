@@ -164,7 +164,7 @@ export default function StudentsPage() {
           {isFetching && !isLoading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
         </div>
         <Button asChild>
-          <Link href="/students/new">
+          <Link href="/students/new" prefetch={false}>
             <Plus className="mr-2 h-4 w-4" /> Add Student
           </Link>
         </Button>

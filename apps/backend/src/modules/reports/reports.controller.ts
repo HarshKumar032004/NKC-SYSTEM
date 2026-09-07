@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Query, BadRequestException } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PoliciesGuard } from '../../casl/policies.guard';
@@ -13,8 +13,9 @@ export class ReportsController {
 
   @Get('kpis')
   @CheckPolicies((ability: AppAbility) => ability.can(Action.Read, 'Branch')) // Only Admins usually have widespread Read on Branch or specific Report domain
-  async getDashboardKpis(@Req() req: any) {
-    const branchId = req.user.branchId;
+  async getDashboardKpis(@Req() req: any, @Query('branchId') queryBranchId?: string) {
+    const branchId = queryBranchId || req.user.branchId;
+    if (!branchId) throw new BadRequestException('Branch ID is required');
     return this.reportsService.getDashboardKpis(branchId);
   }
 

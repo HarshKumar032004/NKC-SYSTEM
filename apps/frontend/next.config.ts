@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@nkc/shared-types'],
   output: 'standalone',
   eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
 
   // Proxy all /api/v1/* requests to the NestJS backend
   async rewrites() {
